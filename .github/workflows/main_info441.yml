@@ -23,8 +23,11 @@ jobs:
         with:
           node-version: '24.x'
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Run tests
-        run: NODE_OPTIONS="--experimental-vm-modules" npx jest test/example.test.js
+        run: npm test
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
