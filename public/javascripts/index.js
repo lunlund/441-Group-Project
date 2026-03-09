@@ -63,6 +63,7 @@ async function logout() {
     await api('POST', '/auth/logout');
     msg('Logged out.');
     checkStatus();
+    document.getElementById('user').classList.remove('active');
 }
 
 // ── listings ───────────────────────────────────────────────────────────────
@@ -135,7 +136,11 @@ async function removeFromCart(itemId)
 
 async function loadUserInformation() {
     const data = await api('GET', '/users');
-    if (data.error) { msg(data.error, true); return; }
+    if (data.error) { msg(data.error, true); 
+        document.getElementById('basic-info').innerHTML=''
+        document.getElementById('watchlist').innerHTML=''
+        document.getElementById('orders').innerHTML=''
+        return; }
     const container = document.getElementById('basic-info')
     container.innerHTML = `
     <h3>Basic Information</h3>
