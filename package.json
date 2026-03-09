@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node --dns-result-order=ipv4first --env-file-if-exists .env ./bin/www.cjs",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/example.test.js"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest test/example.test.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
