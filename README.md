@@ -8,6 +8,32 @@ Our audience wants to use this application because it simplifies the often chaot
 
 As developers, we are motivated to build this application to tackle the technical challenge of creating a secure, full-stack marketplace. We aim to engineer a system that not only handles complex data relationships—such as user accounts, item listings, and transaction records—but also fosters a genuine sense of community. By implementing features like user authentication, real-time data updates, and an intuitive interface, we strive to create a solution that prioritizes user experience and security, ensuring a safe environment for trading idle goods.
 
+## How to Access the Site
+
+The deployed site is available here:
+
+[https://render-practice-7nnq.onrender.com/](https://render-practice-7nnq.onrender.com/)
+
+### How to Try It Out
+
+1. Open the deployed site using the link above.
+2. Register a new account with a username, email, and password.
+3. Log in with the account you created.
+4. Browse the available listings on the home page.
+5. Use the category filter to narrow the listings.
+6. Post a new listing through the `Post a Listing` section.
+7. Go to `User Information` to update your balance so you can test checkout.
+8. Return to `Browse Listings` and add an item to your cart.
+9. Open the `Cart` page, review the items, and click `Checkout`.
+10. After checkout, view the confirmation screen showing the purchased items.
+
+### Notes
+
+- Users cannot add their own listings to the cart.
+- Checkout requires enough account balance.
+- If the site takes a few seconds to load at first, that is normal for a Render deployment waking up from sleep.
+
+
 ## Technical Description
 
 ### Architectural Diagram
