@@ -5,9 +5,9 @@ import mongoose from 'mongoose';
 const UserSchema = new mongoose.Schema({
     username:  { type: String, required: true, unique: true, trim: true },
     email:     { type: String, required: true, unique: true, trim: true },
-    password:  { type: String, default: null },       // bcrypt hash for local accounts
+    password:  { type: String },       // bcrypt hash for local accounts
     authProvider: { type: String, enum: ['local', 'microsoft'], default: 'local' },
-    microsoftOid: { type: String, unique: true, sparse: true, default: null },
+    microsoftOid: { type: String, unique: true, sparse: true },
     balance:   { type: Number, default: 0 },
     bio:       { type: String, default: '' },
     location:  { type: String, default: '' },
@@ -51,6 +51,8 @@ async function main() {
         family: 4,   // force IPv4, avoids IPv6 DNS SRV issues
     });
     console.log('Successfully connected to MongoDB!');
+    await models.User.updateMany({ microsoftOid: null }, { $unset: { microsoftOid: 1 } });
+    await models.User.syncIndexes();
 }
 
 models.User  = mongoose.model('User',  UserSchema);
