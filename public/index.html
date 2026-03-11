@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Second-Hand Trading Platform</title>
+  <link rel="stylesheet" href="/stylesheets/style.css" />
+  <script src="javascripts/index.js" defer></script>
+</head>
+<body>
+  <main class="page-shell">
+    <h1 class="page-title">Second-Hand Trading Platform</h1>
+
+    <div id="status-bar">Not logged in</div>
+    <div id="message"></div>
+    <div id="error-msg"></div>
+
+    <nav>
+      <button onclick="show('user')">User Information</button>
+      <button onclick="show('browse')">Browse Listings</button>
+      <button onclick="show('sell')">Post a Listing</button>
+      <button onclick="show('login')">Login</button>
+      <button onclick="show('register')">Register</button>
+      <button onclick="logout()">Logout</button>
+    </nav>
+
+    <section id="user">
+      <h2>User Information</h2>
+      <div id="user-information">
+        <div id="basic-info"></div>
+        <div id="watchlist"></div>
+        <div id="orders"></div>
+      </div>
+    </section>
+
+    <section id="browse" class="active">
+      <h2>Available Items</h2>
+      <div class="search-bar">
+        <select id="cat-filter">
+          <option value="">All Categories</option>
+          <option>Electronics</option><option>Furniture</option>
+          <option>Books</option><option>Clothing</option><option>Other</option>
+        </select>
+        <button onclick="loadListings()">Search</button>
+      </div>
+      <div id="listings-container">Loading…</div>
+    </section>
+
+    <section id="sell">
+      <h2>Post a New Listing</h2>
+      <form id="listing-form">
+        <label>Title *<input name="name" required /></label>
+        <label>Description<textarea name="description" rows="3"></textarea></label>
+        <label>Price ($) *<input name="price" type="number" min="0" step="0.01" required /></label>
+        <label>Category
+          <select name="category">
+            <option>Electronics</option><option>Furniture</option>
+            <option>Books</option><option>Clothing</option><option>Other</option>
+          </select>
+        </label>
+        <label>Quantity<input name="quantity" type="number" min="1" value="1" /></label>
+        <button type="submit">Post Listing</button>
+      </form>
+    </section>
+
+    <section id="login">
+      <h2>Login</h2>
+      <form id="login-form">
+        <label>Email *<input name="email" type="email" required /></label>
+        <label>Password *<input name="password" type="password" required /></label>
+        <button type="submit">Login</button>
+      </form>
+    </section>
+
+    <section id="register">
+      <h2>Register</h2>
+      <form id="register-form">
+        <label>Username *<input name="username" required /></label>
+        <label>Email *<input name="email" type="email" required /></label>
+        <label>Password *<input name="password" type="password" required /></label>
+        <button type="submit">Create Account</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
