@@ -1,10 +1,38 @@
 // ── helpers ────────────────────────────────────────────────────────────────
+const userListingsById = new Map();
+let lastPurchase = null;
+
 async function api(method, path, body) {
     const opts = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(path, opts);
-    return res.json();
+    const text = await res.text();
+    let data = {};
+
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch {
+            throw new Error(`Request failed for ${path} with status ${res.status}`);
+        }
+    }
+
+    if (!res.ok) {
+        throw new Error(data.error || `Request failed for ${path} with status ${res.status}`);
+    }
+
+    return data;
 }
+
+function escapeHtml(value = '') {
+    return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
 function msg(text, err = false) {
     document.getElementById(err ? 'error-msg' : 'message').textContent = text;
     document.getElementById(err ? 'message' : 'error-msg').textContent = '';
@@ -13,6 +41,8 @@ function show(id) {
     document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     if (id === 'browse') loadListings();
+    else if (id === 'cart') loadCart();
+    else if (id === 'confirmation') renderConfirmation();
     else if (id === 'user') loadUserInformation();
     else if(id === 'sell')
     {
@@ -86,23 +116,118 @@ async function loadListings() {
         <p>${item.description || ''}</p>
         <p><em>Seller: ${item.seller_id?.username || 'Unknown'}</em></p>
         <button class="add-to-cart-btn" onclick="addToCart('${item._id}')">
-            Buy now
+            Add to cart
         </button>
     </div>`).join('');
 }
 
 async function addToCart(itemId) {
-    let data=await fetch(`/api/listings/buy?itemId=${itemId}`,{method:'POST'})
-    data=await data.json()
-    if(data.error)
-    {
-        msg(data.error,true)
-        return 
+    const data = await api('POST', '/api/cart/items', { itemId, quantity: 1 });
+    if (data.error) {
+        msg(data.error, true);
+        return;
     }
-    else
-    {
-        msg("Payment completed")
+    msg('Item added to cart');
+    show('cart');
+}
+
+async function loadCart() {
+    const container = document.getElementById('cart-container');
+    try {
+        const data = await api('GET', '/api/cart');
+        const items = data.items || [];
+
+        if (!items.length) {
+            container.innerHTML = '<p>Your cart is empty.</p>';
+            return;
+        }
+
+        const rows = items.map(item => `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.itemCount}</td>
+                <td>$${item.price.toFixed(2)}</td>
+                <td>$${(item.price * item.itemCount).toFixed(2)}</td>
+                <td>
+                    <button class="del-btn" onclick="removeCartItem('${item.itemId}')">Remove</button>
+                </td>
+            </tr>
+        `).join('');
+
+        container.innerHTML = `
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+            <div class="cart-summary">
+                <strong>Total: $${Number(data.total || 0).toFixed(2)}</strong>
+                <button onclick="checkoutCart()">Checkout</button>
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = '<p>Unable to load cart right now.</p>';
+        msg(error.message, true);
     }
+}
+
+async function removeCartItem(itemId) {
+    const data = await api('DELETE', `/api/cart/items/${itemId}`);
+    if (data.error) {
+        msg(data.error, true);
+        return;
+    }
+    msg('Item removed from cart');
+    await loadCart();
+}
+
+async function checkoutCart() {
+    try {
+        const data = await api('POST', '/api/cart/checkout');
+        lastPurchase = data;
+        msg('Checkout complete');
+        await loadCart();
+        await loadListings();
+        await loadUserInformation();
+        show('confirmation');
+    } catch (error) {
+        msg(error.message, true);
+        if (error.message === 'Login required.') show('login');
+        return;
+    }
+}
+
+function renderConfirmation() {
+    const container = document.getElementById('confirmation-container');
+    const items = lastPurchase?.purchasedItems || [];
+
+    if (!items.length) {
+        container.innerHTML = '<p>No recent purchase yet.</p>';
+        return;
+    }
+
+    const listItems = items.map(item => `
+        <li class="confirmation-item">
+            <span>${item.name} x ${item.quantity}</span>
+            <strong>$${Number(item.subtotal).toFixed(2)}</strong>
+        </li>
+    `).join('');
+
+    container.innerHTML = `
+        <p>Your order has been placed successfully.</p>
+        <ul class="confirmation-list">${listItems}</ul>
+        <div class="cart-summary confirmation-summary">
+            <strong>Total paid: $${Number(lastPurchase.total || 0).toFixed(2)}</strong>
+            <button onclick="show('browse')">Continue Shopping</button>
+        </div>
+    `;
 }
 
 async function updateProfile()
@@ -122,7 +247,7 @@ async function updateProfile()
 }
 async function removeFromCart(itemId)
 {
-    const data=await fetch(`/users/deleteItem?itemId=${itemId}`,{method:'DELETE'})
+    const data = await api('DELETE', `/api/listings/${itemId}`);
     if(data.error)
     {
         msg(data.error,true)
@@ -130,8 +255,39 @@ async function removeFromCart(itemId)
     else
     {
         loadUserInformation()
-        msg("Your Profile uploaded successfully")
+        loadListings()
+        msg("Listing removed successfully")
     }
+}
+
+function startEditingListing(itemId) {
+    const item = userListingsById.get(itemId);
+    const editRow = document.getElementById(`edit-row-${itemId}`);
+    if (!item || !editRow) return;
+    document.querySelectorAll('.edit-row').forEach(row => {
+        row.hidden = true;
+    });
+    editRow.hidden = false;
+}
+
+function cancelListingEdit(itemId) {
+    const editRow = document.getElementById(`edit-row-${itemId}`);
+    if (editRow) editRow.hidden = true;
+}
+
+async function submitListingEdit(event, itemId) {
+    event.preventDefault();
+    const form = event.target;
+    const body = Object.fromEntries(new FormData(form).entries());
+    const data = await api('PUT', `/api/listings/${itemId}`, body);
+    if (data.error) {
+        msg(data.error, true);
+        return;
+    }
+    cancelListingEdit(itemId);
+    msg('Listing updated successfully');
+    await loadUserInformation();
+    await loadListings();
 }
 
 async function loadUserInformation() {
@@ -151,9 +307,14 @@ async function loadUserInformation() {
     <h4>your balance</h4><input type="number" id="userBalance" value=${data.balance} placeholder="" />
     <button onClick="updateProfile()">save</button>
     `
-    const itemList = await Promise.all(data.watchlist.map(async (item)=>{
-    return (await api('GET',`api/listings/${item}`)).item
-    }))
+    const itemList = (await Promise.all(data.watchlist.map(async (item)=>{
+        return (await api('GET',`api/listings/${item}`)).item
+    }))).filter(Boolean);
+    const ownedItems = itemList.filter(item => item.seller_id?._id === data._id);
+    userListingsById.clear();
+    ownedItems.forEach(item => {
+        userListingsById.set(item._id, item);
+    });
 
     let tableHtml = `
     <table class="cart-table">
@@ -168,14 +329,40 @@ async function loadUserInformation() {
         <tbody>
     `;
 
-    itemList.forEach(item => {
+    ownedItems.forEach(item => {
         tableHtml += `
         <tr id="row-${item._id}">
             <td>${item.name}</td>
             <td>${item.category}</td>
             <td>$${item.price}</td>
             <td>
-                <button class="del-btn" onclick="removeFromCart('${item._id}')">Remove</button>
+                <div class="action-buttons">
+                    <button class="secondary-btn" onclick="startEditingListing('${item._id}')">Edit</button>
+                    <button class="del-btn" onclick="removeFromCart('${item._id}')">Remove</button>
+                </div>
+            </td>
+        </tr>
+        <tr id="edit-row-${item._id}" class="edit-row" hidden>
+            <td colspan="4">
+                <form class="listing-edit-form" onsubmit="submitListingEdit(event, '${item._id}')">
+                    <label>Title *<input name="name" required value="${escapeHtml(item.name)}" /></label>
+                    <label>Description<textarea name="description" rows="3">${escapeHtml(item.description || '')}</textarea></label>
+                    <label>Price ($) *<input name="price" type="number" min="0" step="0.01" required value="${item.price}" /></label>
+                    <label>Category
+                        <select name="category">
+                            <option ${item.category === 'Electronics' ? 'selected' : ''}>Electronics</option>
+                            <option ${item.category === 'Furniture' ? 'selected' : ''}>Furniture</option>
+                            <option ${item.category === 'Books' ? 'selected' : ''}>Books</option>
+                            <option ${item.category === 'Clothing' ? 'selected' : ''}>Clothing</option>
+                            <option ${item.category === 'Other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </label>
+                    <label>Quantity<input name="quantity" type="number" min="0" value="${item.quantity}" /></label>
+                    <div class="action-buttons">
+                        <button type="submit">Save Changes</button>
+                        <button type="button" class="ghost-btn" onclick="cancelListingEdit('${item._id}')">Cancel</button>
+                    </div>
+                </form>
             </td>
         </tr>
         `;
@@ -186,7 +373,7 @@ async function loadUserInformation() {
     const container1 = document.getElementById('watchlist')
     container1.innerHTML = `
     <h3>Your items on sale</h3>
-    ${tableHtml}
+    ${ownedItems.length ? tableHtml : '<p>No active listings yet.</p>'}
     `      
 
     const container2 = document.getElementById('orders')

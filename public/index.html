@@ -18,6 +18,7 @@
     <nav>
       <button onclick="show('user')">User Information</button>
       <button onclick="show('browse')">Browse Listings</button>
+      <button onclick="show('cart')">Cart</button>
       <button onclick="show('sell')">Post a Listing</button>
       <button onclick="show('login')">Login</button>
       <button onclick="show('register')">Register</button>
@@ -44,6 +45,16 @@
         <button onclick="loadListings()">Search</button>
       </div>
       <div id="listings-container">Loading…</div>
+    </section>
+
+    <section id="cart">
+      <h2>Your Cart</h2>
+      <div id="cart-container">Loading…</div>
+    </section>
+
+    <section id="confirmation">
+      <h2>Thank you for your purchase</h2>
+      <div id="confirmation-container">No recent purchase yet.</div>
     </section>
 
     <section id="sell">
