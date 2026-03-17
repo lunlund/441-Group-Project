@@ -7,6 +7,7 @@ import session from 'express-session';
 import usersRouter   from './routes/users.js';
 import authRouter    from './routes/auth.js';
 import listingsRouter from './routes/listings.js';
+import cartRouter from './routes/cart.js';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -41,5 +42,6 @@ app.use((req, res, next) => {
 app.use('/users',        usersRouter);
 app.use('/auth',         authRouter);
 app.use('/api/listings', listingsRouter);
+app.use('/api/cart',     cartRouter);
 
 export default app;

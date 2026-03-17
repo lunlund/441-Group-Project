@@ -168,10 +168,18 @@ router.put('/:id', requireLogin, async (req, res) => {
         if (item.seller_id.toString() !== req.session.userId) {
             return res.status(403).json({ error: 'Not authorized.' });
         }
-        const allowed = ['name', 'description', 'price', 'category', 'images', 'quantity', 'sold'];
-        allowed.forEach(field => {
-            if (req.body[field] !== undefined) item[field] = req.body[field];
+        const updates = {
+            name: req.body.name,
+            description: req.body.description,
+            category: req.body.category,
+            images: req.body.images,
+        };
+        Object.entries(updates).forEach(([field, value]) => {
+            if (value !== undefined) item[field] = value;
         });
+        if (req.body.price !== undefined) item.price = Number(req.body.price);
+        if (req.body.quantity !== undefined) item.quantity = Number(req.body.quantity);
+        if (req.body.sold !== undefined) item.sold = Boolean(req.body.sold);
         await item.save();
         res.json({ item });
     } catch (err) {

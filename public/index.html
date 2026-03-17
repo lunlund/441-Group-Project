@@ -6,120 +6,92 @@
   <title>Second-Hand Trading Platform</title>
   <link rel="stylesheet" href="/stylesheets/style.css" />
   <script src="javascripts/index.js" defer></script>
-  <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 1rem; }
-    h1 { color: #333; }
-    nav { display: flex; gap: 1rem; margin-bottom: 1rem; }
-    nav button { padding: .4rem .9rem; cursor: pointer; }
-    section { display: none; }
-    section.active { display: block; }
-    .card { border: 1px solid #ddd; border-radius: 6px; padding: 1rem; margin: .5rem 0; }
-    .card h3 { margin: 0 0 .3rem; }
-    label { display: block; margin-top: .5rem; font-size: .9rem; }
-    input, textarea, select { width: 100%; padding: .4rem; margin-top: .2rem; box-sizing: border-box; }
-    button[type=submit] { margin-top: .8rem; padding: .5rem 1.2rem; background: #0078d4; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-    #status-bar { background: #f0f0f0; padding: .4rem .8rem; border-radius: 4px; margin-bottom: 1rem; font-size: .9rem; }
-    .search-bar { display: flex; gap: .5rem; margin-bottom: 1rem; }
-    .search-bar input { flex: 1; }
-    #message { color: green; margin: .5rem 0; }
-    #error-msg { color: red; margin: .5rem 0; }
-    .add-to-cart-btn {
-        background-color: #28a745; /* 绿色表示增加 */
-        color: white;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background 0.3s;
-    }
-
-    .add-to-cart-btn:hover {
-        background-color: #218838;
-    }
-
-    .add-to-cart-btn:active {
-        transform: scale(0.95); /* 点击时的微小反馈 */
-    }
-  </style>
 </head>
 <body>
-  <h1>Second-Hand Trading Platform</h1>
-  <div id="status-bar">Not logged in</div>
-  <div id="message"></div>
-  <div id="error-msg"></div>
+  <main class="page-shell">
+    <h1 class="page-title">Second-Hand Trading Platform</h1>
 
-  <nav>
-    <button onclick="show('user')">User Information</button>
-    <button onclick="show('browse')">Browse Listings</button>
-    <button onclick="show('sell')">Post a Listing</button>
-    <button onclick="show('login')">Login</button>
-    <button onclick="show('register')">Register</button>
-    <button onclick="logout()">Logout</button>
-  </nav>
+    <div id="status-bar">Not logged in</div>
+    <div id="message"></div>
+    <div id="error-msg"></div>
 
-  <!-- UserInformation -->
-  <section id="user">
-    <h2>User Information</h2>
-    <div id="user-information">
-      <div id="basic-info"></div>
-      <div id="watchlist"></div>
-      <div id="orders"></div>
-    </div>
-  </section>
+    <nav>
+      <button onclick="show('user')">User Information</button>
+      <button onclick="show('browse')">Browse Listings</button>
+      <button onclick="show('cart')">Cart</button>
+      <button onclick="show('sell')">Post a Listing</button>
+      <button onclick="show('login')">Login</button>
+      <button onclick="show('register')">Register</button>
+      <button onclick="logout()">Logout</button>
+    </nav>
 
-  <!-- Browse -->
-  <section id="browse" class="active">
-    <h2>Available Items</h2>
-    <div class="search-bar">
-      <!-- <input id="search-input" placeholder="Search by keyword…" /> -->
-      <select id="cat-filter">
-        <option value="">All Categories</option>
-        <option>Electronics</option><option>Furniture</option>
-        <option>Books</option><option>Clothing</option><option>Other</option>
-      </select>
-      <button onclick="loadListings()">Search</button>
-    </div>
-    <div id="listings-container">Loading…</div>
-  </section>
+    <section id="user">
+      <h2>User Information</h2>
+      <div id="user-information">
+        <div id="basic-info"></div>
+        <div id="watchlist"></div>
+        <div id="orders"></div>
+      </div>
+    </section>
 
-  <!-- Post listing -->
-  <section id="sell">
-    <h2>Post a New Listing</h2>
-    <form id="listing-form">
-      <label>Title *<input name="name" required /></label>
-      <label>Description<textarea name="description" rows="3"></textarea></label>
-      <label>Price ($) *<input name="price" type="number" min="0" step="0.01" required /></label>
-      <label>Category
-        <select name="category">
+    <section id="browse" class="active">
+      <h2>Available Items</h2>
+      <div class="search-bar">
+        <select id="cat-filter">
+          <option value="">All Categories</option>
           <option>Electronics</option><option>Furniture</option>
           <option>Books</option><option>Clothing</option><option>Other</option>
         </select>
-      </label>
-      <label>Quantity<input name="quantity" type="number" min="1" value="1" /></label>
-      <button type="submit">Post Listing</button>
-    </form>
-  </section>
+        <button onclick="loadListings()">Search</button>
+      </div>
+      <div id="listings-container">Loading…</div>
+    </section>
 
-  <!-- Login -->
-  <section id="login">
-    <h2>Login</h2>
-    <form id="login-form">
-      <label>Email *<input name="email" type="email" required /></label>
-      <label>Password *<input name="password" type="password" required /></label>
-      <button type="submit">Login</button>
-    </form>
-  </section>
+    <section id="cart">
+      <h2>Your Cart</h2>
+      <div id="cart-container">Loading…</div>
+    </section>
 
-  <!-- Register -->
-  <section id="register">
-    <h2>Register</h2>
-    <form id="register-form">
-      <label>Username *<input name="username" required /></label>
-      <label>Email *<input name="email" type="email" required /></label>
-      <label>Password *<input name="password" type="password" required /></label>
-      <button type="submit">Create Account</button>
-    </form>
-  </section>
+    <section id="confirmation">
+      <h2>Thank you for your purchase</h2>
+      <div id="confirmation-container">No recent purchase yet.</div>
+    </section>
+
+    <section id="sell">
+      <h2>Post a New Listing</h2>
+      <form id="listing-form">
+        <label>Title *<input name="name" required /></label>
+        <label>Description<textarea name="description" rows="3"></textarea></label>
+        <label>Price ($) *<input name="price" type="number" min="0" step="0.01" required /></label>
+        <label>Category
+          <select name="category">
+            <option>Electronics</option><option>Furniture</option>
+            <option>Books</option><option>Clothing</option><option>Other</option>
+          </select>
+        </label>
+        <label>Quantity<input name="quantity" type="number" min="1" value="1" /></label>
+        <button type="submit">Post Listing</button>
+      </form>
+    </section>
+
+    <section id="login">
+      <h2>Login</h2>
+      <form id="login-form">
+        <label>Email *<input name="email" type="email" required /></label>
+        <label>Password *<input name="password" type="password" required /></label>
+        <button type="submit">Login</button>
+      </form>
+    </section>
+
+    <section id="register">
+      <h2>Register</h2>
+      <form id="register-form">
+        <label>Username *<input name="username" required /></label>
+        <label>Email *<input name="email" type="email" required /></label>
+        <label>Password *<input name="password" type="password" required /></label>
+        <button type="submit">Create Account</button>
+      </form>
+    </section>
+  </main>
 </body>
 </html>
